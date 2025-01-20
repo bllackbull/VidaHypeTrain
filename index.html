@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitch Follow Notifications</title>
+  </head>
+  <body>
+    <h1>Follow Notifications</h1>
+    <div id="notifications"></div>
+
+    <script>
+      const ws = new WebSocket("ws://api.vidaw.info:8080");
+
+      ws.onopen = () => {
+        console.log("Connected to WebSocket server.");
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const notificationsDiv = document.getElementById("notifications");
+        const message = document.createElement("p");
+        message.textContent = `${data.username} just followed!`;
+        notificationsDiv.appendChild(message);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket connection closed. Reconnecting...");
+        setTimeout(() => {
+          location.reload();
+        }, 3000);
+      };
+    </script>
+  </body>
+</html>
