@@ -10,7 +10,7 @@
     <div id="notifications"></div>
 
     <script>
-      const ws = new WebSocket("wss://api.vidaw.info");
+      const ws = new WebSocket("wss://api.vidaw.info:3002");
 
       ws.onopen = () => {
         console.log("Connected to WebSocket server.");
