@@ -3,32 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Twitch Follow Notifications</title>
+    <title>Vida's Hype Train Notifications</title>
+    <link rel="icon" href="./images/icon.png" type="image" />
   </head>
   <body>
-    <h1>Follow Notifications</h1>
+    <h1>Hype Train Notifications</h1>
     <div id="notifications"></div>
 
     <script>
-      const ws = new WebSocket("wss://api.vidaw.info/ws");
+      function connectToWebSocket() {
+        const ws = new WebSocket("wss://api.vidaw.info/ws");
 
-      ws.onopen = () => {
-        console.log("Connected to WebSocket server.");
-      };
+        ws.onopen = () => {
+          console.log("Connected to WebSocket server.");
+        };
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const notificationsDiv = document.getElementById("notifications");
-        const message = document.createElement("p");
-        message.textContent = `${data.user_name} just followed!`;
-        notificationsDiv.appendChild(message);
-      };
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
 
-      ws.onclose = () => {
-        console.log("WebSocket connection closed. Reconnecting...");
-        setTimeout(() => {
-          location.reload();
-        }, 3000);
+          const notificationsDiv = document.getElementById("notifications");
+          const message = document.createElement("p");
+
+          switch (data.type) {
+            case "channel.hype_train.begin":
+              message.textContent = `${data.last_contribution.user_name} just started hype train!`;
+              break;
+            case "channel.hype_train.progress":
+              message.textContent = `${data.last_contribution.user_name} gave ${data.last_contribution.total} ${data.last_contribution.type}`;
+              break;
+            case "channel.hype_train.end":
+              message.textContent = `Hype train ended at level ${data.level}`;
+              break;
+
+            default:
+              console.warn("Unhandled event type:", data.type);
+              return;
+          }
+
+          const MAX_MESSAGES = 10;
+          if (notificationsDiv.children.length >= MAX_MESSAGES) {
+            notificationsDiv.removeChild(notificationsDiv.firstChild);
+          }
+
+          notificationsDiv.appendChild(message);
+        };
+
+        ws.onclose = () => {
+          console.log("WebSocket connection closed. Reconnecting...");
+          setTimeout(connectToWebSocket, 3000);
+        };
+
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error.message);
+        };
+      }
+
+      window.onload = () => {
+        connectToWebSocket();
       };
     </script>
   </body>
